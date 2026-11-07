@@ -21,14 +21,13 @@ public class Arena {
     public Arena(RegistroCombate registro, Random azar) {
         this.registro = registro;
         this.azar = azar;
+        // Los hilos de efectos (DoT/HoT) escriben sus mensajes en el registro de combate
+        Personaje.setSalidaEfectos(registro::agregar);
     }
 
-    /** Procesa efectos y aturdimiento. @return true si el personaje puede actuar este turno */
+    /** Revisa si cae por sus efectos y el aturdimiento. @return true si el personaje puede actuar este turno */
     public boolean iniciarTurno(Personaje personaje) {
         personaje.alIniciarTurno();
-        for (String mensaje : personaje.procesarEfectos()) {
-            registro.agregar(mensaje);
-        }
         if (!personaje.estaVivo()) {
             registro.agregar("%s cae derrotado por sus efectos", personaje.getNombre());
             return false;
@@ -82,6 +81,8 @@ public class Arena {
             turnoAutomatico(a, b);
             turnoAutomatico(b, a);
         }
+        a.cancelarEfectos();
+        b.cancelarEfectos();
         return a.getVida() >= b.getVida() ? a : b;
     }
 }
